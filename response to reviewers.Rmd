@@ -1,0 +1,239 @@
+---
+title: "final_project"
+author: "Krutika Chauhan"
+date: "2022-12-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+library(tidyverse)
+library(haven)
+library(tidyr)
+```
+
+```{r, show_col_types = False }
+data1<- read_dta("/Users/krutika/Downloads/smallnewdf.dta")
+```
+
+```{r}
+data1 <- data1 %>%
+  drop_na(bmi_r, Age, educ, sex,bwtr4, mrace6)
+```
+
+
+```{r}
+set.seed(300000)
+small <- data1[sample(nrow(data1), size=300000),]
+```
+
+
+
+```{r}
+small$mager9 = as.factor(small$mager9)
+summary(small$mager9)
+
+```
+
+```{r}
+summary(small$birthweight)
+```
+
+
+
+#birthweight to binomial
+```{r}
+class(small$birthweight)
+small$birthweight = as.factor(small$birthweight)
+class(small$birthweight)
+```
+#deleting variables
+```{r}
+small = subset(small, select = -c(birth) )
+```
+
+
+
+#recoding bmi, age, sex, edu
+```{r}
+
+small <- small %>%
+  mutate(BMI=case_when(bmi_r == 1 ~"Underweight <18.5",
+                             bmi_r == 2 ~"Normal 18.5-24.9",
+                             bmi_r == 3 ~"Overweight 25.0-29.9",
+                             bmi_r == 4 ~"Obesity I 35.0-34.9",
+                             bmi_r == 4 ~"Obesity II 35.0-39.9",
+                             bmi_r == 4 ~"Extreme Obesity III ≥ 40.0"))
+table(small$BMI, useNA = "always")
+
+```
+
+#recoding age
+```{r}
+small <- small %>%
+  mutate(mage=case_when(Age == 1 ~"20-29 years",
+                                  Age == 2 ~"30-39 years",
+                                  Age == 3 ~"More than 40 years",
+                                  Age == 3 ~"More than 40 years"))
+                              table(small$mage, useNA = "always")
+```
+
+```{r}
+small <- small %>%
+ mutate(birth=case_when(birthweight == "Less than 2500 grams" ~1,
+                         birthweight == "More than 2500 grams" ~2))
+                                  table(small$birth, useNA = "always")
+```
+
+
+```{r}
+small <- small %>%
+ mutate(infantsex=case_when(sex == "Male" ~1,
+                         sex == "Female" ~2))
+                                  table(small$infantsex, useNA = "always")
+```
+
+```{r}
+small <- small %>%                           
+  mutate(maternaleduc=case_when(educ == 1 ~"Bachelor degree or less",
+                                  educ == 2 ~"Masters degree",
+                                  educ == 3 ~"Doctorate or Professional degree"))
+                          table(small$maternaleduc, useNA = "always")
+```
+#bmi into factor
+
+```{r}
+small <- small %>%                           
+  mutate(mrace=case_when(mrace6 == 10 ~"White",
+                                  mrace6 == 20 ~"Black"))%>%
+                            drop_na(mrace)
+                           table(small$mrace, useNA = "always")
+```
+```{r}
+rand_df$race = as.factor(rand_df$race)
+
+class(rand_df$race)
+
+```
+```{r}
+small$mage = as.factor(small$mage)
+class(small$mage)
+```
+
+
+```{r}
+small$mrace = as.factor(small$mrace)
+small$sex = as.factor(small$sex)
+small$maternaleduc = as.factor(small$maternaleduc)
+small$Age = as.factor(small$Age)
+small$BMI = as.factor(small$BMI)
+class(small$BMI) # factor cha
+class(small$maternaleduc) # factorfac
+class(small$birthweight) #factor
+class(small$Age) #factor num
+class(small$mrace) #factor num
+summary(small)
+```
+
+```{r}
+summary(small$mage)
+```
+
+```{r}
+small = subset(small, select = -c(educ,mager9, mrace6, mrace15, meduc, previs, bmi_r, bwtr4, Age, race, educ, birth, infantsex) )
+```
+
+```{r}
+small <- small %>%
+  drop_na(BMI, mage, maternaleduc, sex,birthweight, mrace)
+```
+
+
+```{r}
+
+model1<- glm(birthweight ~ mage, data=small, family="binomial")
+summary(model1) 
+
+exp(model1$coefficients)
+exp(confint(model1))
+
+odds.n.ends(model1)
+```
+
+```{r}
+model2<- glm(birthweight ~ mage + sex + maternaleduc + BMI + mrace, data=small, family="binomial")
+summary(model2) 
+
+exp(model2$coefficients)
+exp(confint(model2))
+
+odds.n.ends(model2)
+```
+
+```{r}
+model3<- glm(birthweight ~ BMI, data=small, family="binomial")
+summary(model3) 
+
+exp(model3$coefficients)
+exp(confint(model3))
+
+odds.n.ends(model3)
+```
+
+```{r}
+model4<- glm(birthweight ~ BMI + mage + sex + maternaleduc + mrace, data=small, family="binomial")
+
+exp(model4$coefficients)
+exp(confint(model4))
+
+#odds.n.ends(model4)
+```
+
+```{r}
+# Model and age*race
+
+
+model6<- glm(birthweight ~ mage + maternaleduc + sex + BMI +mrace + mage*mrace, data=small, family="binomial")
+exp(model6$coefficients)
+exp(confint(model6))
+#odds.n.ends(model6)
+# Test the hypothesis with the lrtest
+lrtest(model2, model6)
+lrtest(model6,model2)
+```
+
+
+
+
+
+
+
+
+
+
+
+

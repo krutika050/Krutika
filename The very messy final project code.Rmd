@@ -1,0 +1,534 @@
+---
+title: "Untitled"
+author: "Krutika Chauhan"
+date: "2022-12-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r, echo=TRUE, message = F}
+pacman::p_load(odds.n.ends, blorr, lmtest, car,  broom, tidyverse, jtools, readr) 
+```
+#libraries
+```{r}
+library(tidyverse)
+library(haven)
+library(dplyr)
+
+```
+
+#loading data
+```{r, show_col_types = False }
+newdf<- read_dta("/Users/krutika/Downloads/smallnewdf.dta")
+```
+
+```{r}
+newdf$mager9 = as.factor(newdf$mager9)
+summary(newdf$mager9)
+
+```
+```{r}
+summary(newdf$birthweight)
+```
+
+
+
+#birthweight to binomial
+```{r}
+class(newdf$birthweight)
+newdf$birthweight = as.factor(newdf$birthweight)
+class(newdf$birthweight)
+```
+#deleting variables
+```{r}
+newdf1 = subset(newdf1, select = -c(race,birth) )
+```
+
+
+
+```{r}
+random$mrace = as.factor(random$mrace)
+class(newdf$sex) # factor cha
+class(newdf$educ) # factorfac
+class(newdf$birthweight) #factor
+class(newdf$Age) #factor num
+class(newdf$previs) #numeric 
+class(random$mrace) #factor num
+summary(newdf)
+```
+#recoding sex
+
+```{r echo= FALSE,message=FALSE, warning=FALSE}
+newdf1<-newdf %>%  
+   zap_labels() %>% #unlabel the variables
+  
+  mutate(SEX =recode_factor(sex,
+                                        '1'='Male',
+                                        '2'='Female',
+                                        'Refused'= NA_character_))
+```
+```{r}
+summary(newdf1$SEX)
+```
+
+#previs into numeric
+```{r}
+newdf <- newdf %>%
+  mutate(prev=as.numeric(previs))
+```
+
+```{r}
+summary(newdf1$SEX)
+```
+#sex age educ into factor #bmi to factor
+```{r}
+newdf1$SEX = as.factor(newdf1$SEX)
+newdf1$educ = as.factor(newdf1$educ)
+newdf1$Age = as.factor(newdf1$Age)
+class(newdf1$SEX)
+class(newdf1$educ)
+class(newdf1$Age)
+class(newdf1$previs)
+```
+#recoding bmi, age, sex, edu
+```{r}
+
+newdf1 <- newdf1 %>%
+  mutate(BMI=case_when(bmi_r == 1 ~"Underweight <18.5",
+                             bmi_r == 2 ~"Normal 18.5-24.9",
+                             bmi_r == 3 ~"Overweight 25.0-29.9",
+                             bmi_r == 4 ~"Obesity I 35.0-34.9",
+                             bmi_r == 4 ~"Obesity II 35.0-39.9",
+                             bmi_r == 4 ~"Extreme Obesity III ≥ 40.0"))
+table(newdf1$BMI, useNA = "always")
+
+```
+
+
+```{r}
+newdf1$BMI = as.factor(newdf1$BMI)
+class(newdf1$BMI)
+
+```
+
+
+```{r}
+newdf1 <- newdf1 %>%
+  mutate(mage=case_when(Age == 1 ~"20-29 years",
+                                  Age == 2 ~"30-39 years",
+                                  Age == 3 ~"More than 40 years",
+                                  Age == 3 ~"More than 40 years"))
+                              table(newdf1$mage, useNA = "always")
+```
+
+```{r}
+newdf1 <- newdf1 %>%
+ mutate(birth=case_when(birthweight == "Less than 2500 grams" ~1,
+                         birthweight == "More than 2500 grams" ~2))
+                                  table(newdf1$birth, useNA = "always")
+```
+
+
+```{r}
+newdf1 <- newdf1 %>%
+ mutate(infantsex=case_when(SEX == "Male" ~1,
+                         SEX == "Female" ~2))
+                                  table(newdf1$infantsex, useNA = "always")
+```
+
+```{r}
+newdf1 <- newdf1 %>%                           
+  mutate(maternaleduc=case_when(educ == 1 ~"Bachelor degree or less",
+                                  educ == 2 ~"Masters degree",
+                                  educ == 3 ~"Doctorate or Professional degree"))
+                          table(newdf1$maternaleduc, useNA = "always")
+```
+#bmi into factor
+
+```{r}
+newdf1 <- newdf1 %>%                           
+  mutate(mrace=case_when(mrace6 == 10 ~"White",
+                                  mrace6 == 20 ~"Black"))%>%
+                            drop_na(mrace)
+                           table(newdf1$mrace, useNA = "always")
+```
+```{r}
+rand_df$race = as.factor(rand_df$race)
+
+class(rand_df$race)
+
+```
+```{r}
+newdf1$maternalage = as.factor(newdf1$maternalage)
+class(newdf$maternalage)
+```
+
+
+```{r}
+summary(rand_df)
+```
+
+#dropping nas
+```{r}
+newdf1 <- newdf1 %>%
+  drop_na(BMI, previs, mage, maternaleduc, SEX,birthweight)
+```
+
+## Check percentage of data excluded. Make a mental note of whether this seems like too much. We are not going to address this here with imputation but there is a lot of missing data! This is too much missing data but for educational purposes only we will use this dataframe. 21 percent
+```{r}
+ 100 - nrow(newdf1)/nrow(newdf) * 100
+```
+
+## Let's make sure we have enough cases in each exposure/outcome category, we are adding other potential variables we will use. If any strata have <10 counts, we may needd to regroup.
+```{r}
+table(newdf1$BMI, newdf1$birthweight)
+```
+
+#descriptives
+
+```{r}
+library(dplyr)
+library(broom)
+library(tidycat)
+library(table1)
+```
+
+#VARIABLES SEX, Age, educ, birthweight, BMI
+#TABLE 1
+
+```{r}
+table1(~maternalage + SEX + maternaleduc + BMI  + previs|birthweight, newdf1)
+
+```
+
+#labels
+```{r}
+label(random$mage)<-"Age (years)"
+label(random$SEX)<-"Sex"
+label(random$BMI)<-"Maternal Body Mass Index"
+label(random$maternaleduc)<-"Maternal education status"
+label(random$mrace)<-"Race"
+label(random$birthweight)<-"Infant birthweight"
+```
+
+```{r}
+
+table1(~matage + SEX + maternaleduc + BMI  + previs|birthweight, newdf1)
+
+```
+
+```{r}
+table1(~matage + SEX + maternaleduc + BMI  + previs|birthweight, overall="Total", newdf1)
+```
+
+```{r}
+table1(~matage + SEX + maternaleduc + BMI  + previs|birthweight, overall="Total", rowlabelhead="Variable", newdf1)
+```
+#final table 1
+```{r}
+table1(~mage + SEX + maternaleduc + BMI + mrace|birthweight, overall="Total", footnote='SD = standard deviation', random)
+```
+
+#null model with birthweight and age
+```{r}
+#set.seed(3000)
+#rand_df <- newdf1[sample(nrow(newdf1), size=30000),]
+model1<- glm(birthweight ~ mage, data=random, family="binomial")
+summary(model1) # get log results
+
+#table(rand_df$matage, rand_df$birthweight)
+
+exp(model1$coefficients)
+exp(confint(model1))
+
+odds.n.ends(model1)
+
+
+# confint <-exp(estimate - 1.96*SE)
+# confint <-exp(estimate + 1.96*SE)
+```
+#the odds of mothers aged more than 40 years have 36 percent less chance of habing a low birthweight baby compared to mother of age 20-29.
+```{r}
+model2<- glm(birthweight ~ mage + SEX + maternaleduc + BMI + mrace, data=random, family="binomial")
+summary(model2) 
+
+exp(model2$coefficients)
+exp(confint(model2))
+
+odds.n.ends(model2)
+```
+
+```{r}
+model3<- glm(birthweight ~ BMI, data=random, family="binomial")
+summary(model3) 
+
+exp(model3$coefficients)
+exp(confint(model3))
+
+odds.n.ends(model3)
+```
+
+```{r}
+model4<- glm(birthweight ~ BMI + mage + SEX + maternaleduc + mrace, data=random, family="binomial")
+summary(model4) 
+
+exp(model4$coefficients)
+exp(confint(model4))
+
+odds.n.ends(model4)
+```
+
+##multicolinearity
+
+```{r}
+vif(model2)
+
+# another way from the jtools package
+
+summ(model2, vifs = TRUE)
+# cutoff references: https://quantifyinghealth.com/vif-threshold/
+# df is the degrees of freedom associated with the term (1 is good) variables not corelated/good model be signi
+```
+```{r}
+vif(model4)
+
+# another way from the jtools package
+
+summ(model2, vifs = TRUE)
+```
+
+```{r}
+# Plot Cooks's Distance
+# 
+
+plot(model2, which = 4, id.n = 3, col="red") # which gives Cook's distance calculations (see https://stat.ethz.ch/R-manual/R-patched/library/stats/html/plot.lm.html)
+
+plot(model4, which = 4, id.n = 3, col="red")
+```
+
+```{r}
+model2.data <- augment(model2) %>%  
+  mutate(index = 1:n()) 
+
+head(model2.data)
+```
+```{r}
+model4.data <- augment(model4) %>%  
+  mutate(index = 1:n()) 
+
+head(model4.data)
+```
+
+
+```{r}
+#model fit test
+blr_model_fit_stats(model2)
+
+# deviance is 2 x the Log-Lik of the full model
+# the LR can be calculated as the absolute value of 2(Log-Lik Intercept only - Log-Lik Full model)
+# Compared to the intercept only model there is no difference in McFadden's R2
+
+# Hosmer lemeshow goodness of fit test: a significant p value indicates a bad fit
+blr_test_hosmer_lemeshow(model2) #badfit
+
+blr_model_fit_stats(model4)
+
+blr_test_hosmer_lemeshow(model4) #badfit
+```
+
+```{r}
+# Model and insurance*education 
+model5<- glm(birthweight ~ maternaleduc + mage + SEX + BMI +mrace, data=random, family="binomial")
+summary(model5) 
+odds.n.ends(model5)
+
+model6<- glm(birthweight ~ maternaleduc + mage + SEX + BMI +mrace + maternaleduc*BMI, data=random, family="binomial")
+summary(model6) 
+odds.n.ends(model6)
+# Test the hypothesis with the lrtest
+lrtest(model5, model6)
+lrtest(model6,model5)
+```
+```{r}
+table(PWID2$education)
+table(PWID2$hep)
+table(PWID2$insurance)
+table(PWID2$Income)
+table(PWID2$sex)
+table(PWID2$age3)
+```
+
+## Unadjusted model
+
+```{r}
+table(PWID2$education)
+class(PWID2$Hep_status)
+
+
+model1<- glm(hep1 ~ education, data=PWID2, family="binomial")
+summary(model1) # get log results
+
+exp(model1$coefficients)
+exp(confint(model1))
+
+odds.n.ends(model1) 
+```
+##adjusted model
+```{r}
+model3<- glm(hep1 ~ education + age3 + Income + race3, data=PWID2, family="binomial")
+summary(model3) 
+
+odds.n.ends(model3)
+
+compareCoefs(model1, model3)
+```
+```{r}
+vif(model3)
+
+# another way from the jtools package
+
+summ(model3, vifs = TRUE)
+# cutoff references: https://quantifyinghealth.com/vif-threshold/
+# df is the degrees of freedom associated with the term
+```
+```{r}
+#model fit test
+blr_model_fit_stats(model3)
+
+# deviance is 2 x the Log-Lik of the full model
+# the LR can be calculated as the absolute value of 2(Log-Lik Intercept only - Log-Lik Full model)
+# Compared to the intercept only model there is no difference in McFadden's R2
+
+# Hosmer lemeshow goodness of fit test: a significant p value indicates a bad fit
+blr_test_hosmer_lemeshow(model3)
+```
+##test effect modification
+
+```{r}
+# Model and insurance*education 
+model4<- glm(hep1 ~ education + age3 + Income + insurance +race3, data=PWID2, family="binomial")
+summary(model4) 
+odds.n.ends(model4)
+
+model5<- glm(hep1 ~ education + age3 + Income + insurance + race3 + education*insurance, data=PWID2, family="binomial")
+summary(model5) 
+odds.n.ends(model5)
+# Test the hypothesis with the lrtest
+lrtest(model4, model5)
+lrtest(model5,model4)
+```
+```{r}
+table(PWID2$education)
+table(PWID2$hep)
+table(PWID2$insurance)
+table(PWID2$Income)
+table(PWID2$sex)
+table(PWID2$age3)
+```
+##table 1
+```{r}
+
+#Let's make a table 1 with the table 1 function, which takes the form of an equation
+table1 = table1(~sex + age3 + race3 + education + insurance + income |hep, PWID2) 
+table1
+```
+
+## figure one
+
+```{r}
+#install.packages("DiagrammeR")
+#install.packages("DiagrammeRsvg")
+#install.packages("rsvg")
+#install.packages("export_svg")
+
+
+library(DiagrammeR)
+library(DiagrammeRsvg)
+library(magrittr) 
+library(rsvg)
+# The cerv dataset is 41,295 observations when it is read in and then after we exclude those with cerival cancer diagnoses before 2007, the dataset is 30,952 observations. If we exclude those with missing data on stage as the below step does, we are left with 28,261 observations. If there are no other variables with missing data this would be the n for our analytic dataset if we are doing a complete case analysis. We can show how we arrived at our analytic dataset n with the figure 1 code below.
+
+#This code was adapted from: 
+
+#need to exclude those with missing stage (you need to note how many were excluded at each step by looking at the difference in the number of observations in the dataset that is created after each exclusion and the number of observations in the dataset before the exclusion) 
+random<-random[which(!is.na(random$birthweight)),]
+
+#Figure 1
+figure1 = grViz("digraph flowchart {
+
+      # node definitions with substituted label text
+      node [fontname = Helvetica, shape = rectangle, fontsize=8] 
+      # notes indicate how many boxes you will have in your diagram. Since I have two sets of exclusions, I will have three nodes.
+      tab1 [label = '@@1'] # starting
+      tab2 [label = '@@2'] # exclusion 1
+      tab3 [label = '@@3'] # exclusion 2
+      tab4 [label = '@@4'] # exclusion 3
+      tab5 [label = '@@5'] # exclusion 4
+      
+      
+      # edge definitions with the node IDs are used to indicate how the rectangle boxes flow from each other. This is a simple flow chart but I could create branching instead as below
+      tab1 -> tab2 -> tab3 -> tab4 -> tab5
+}
+      #This set of code provides the text in each rectangle box.
+      [1]: 'Records recieved by CDC for natalty statistics of 2021 were n=36,69,928'
+      [2]: 'Excluding 1,49,004 individuals who are younger than 20 years of age n=35,20,924'
+      [3]: 'Excluding 3,423 individuals who didnot have records for infant birthweight n=35,17,501'
+      [4]: 'Excluding 6,13,734 individual missing data n=29,03,767'
+      [5]: 'Excluding 28,73,767 individual and only using 1.03 percent of the observations from 29,03,767 n=30,000'
+      ")
+
+print(figure1)
+```
+
+
+```{r}
+t = DiagrammeRsvg::export_svg(figure1)
+tmp = charToRaw(t) # flatten
+rsvg::rsvg_png(tmp, "g.png") # saved graph as png in current working directory
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
